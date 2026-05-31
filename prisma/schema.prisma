@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id              String         @id @default(cuid())
+  title           String
+  ambientAudioUrl String?
+  description     String
+  style           String
+  ttsVoice        String         @default("child_girl")
+  photoUsage      String
+  photoUrl        String?
+  pages           Page[]
+  generationJob   GenerationJob?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Page {
+  id          String  @id @default(cuid())
+  pageNumber  Int
+  text        String
+  imageUrl    String
+  audioUrl    String?
+  imagePrompt String
+  bookId      String
+  book        Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model GenerationJob {
+  id              String    @id @default(cuid())
+  status          String    @default("queued")
+  description     String
+  style           String
+  ttsVoice        String    @default("child_girl")
+  photoUsage      String
+  pageCount       Int
+  referenceImages Json
+  error           String?
+  bookId          String?   @unique
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  book            Book?     @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
